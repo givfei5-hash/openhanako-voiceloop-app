@@ -1,0 +1,220 @@
+{
+  "manifestVersion": 2,
+  "id": "voiceloop",
+  "name": "Voiceloop 语音播报",
+  "version": "2.1",
+  "entry": "index.js",
+  "description": "给 Hana 一个声音：开场轻问候、过程贴状态旁白、收尾把最终输出念出来。四档合成策略可选（云端 Edge 优先 / 云端优先+来源兜底 / 只用来源 / HanaAgent 媒体引擎专属）；来源可选 HanaAgent 内置媒体引擎（豆包 TTS，零配置）或标准 OpenAI 兼容 TTS API（本地模型/第三方服务，支持 Base URL + 模型 + API Key）；应用不走本地模型直连，一律经 API；参考音随包预合成，换音色即换声；播报风格四档（俏皮/平实/温柔/干练）、播报密度四档（紧凑/标准/稀疏/安静）、巡检静默开关、音色与语速可选；敏感内容一律不播。",
+  "capabilities": [
+    "app/tools.expose-to-model",
+    "app/process.spawn",
+    "app/hooks.observe",
+    "app/hooks.agent-before-start",
+    "app/models.infer",
+    "app/models.read",
+    "app/media.generate",
+    "app/resources.read",
+    "app/sessions.read",
+    "app/hooks.messages-post-assistant",
+    "app/hooks.tools-post-execute",
+    "app/hooks.tools-pre-execute"
+  ],
+  "icon": "assets/icon.svg",
+  "minAppVersion": "1.0.4-beta",
+  "contributes": {
+    "settings": {
+      "title": "Voiceloop 语音播报",
+      "schema": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true,
+            "title": "启用语音播报",
+            "description": "关闭后 voiceloop_speak 直接返回静音提示，不再合成语音。注意：首次安装或更新本应用后需完全重启 HanaAgent 才生效，重启后设置实时生效"
+          },
+          "strategy": {
+            "type": "string",
+            "default": "edge-local",
+            "title": "语音 TTS 合成策略",
+            "description": "决定每句播报走哪条合成链路：云端 Edge TTS / 非 edge 链路（HanaAgent 媒体引擎，或标准 OpenAI 兼容 TTS API）/ 纯豆包内部管线（不走微软 TTS 和自建 API，引擎不可用时直接报失败不回退）。应用不直连本地模型：本地模型请部成标准 API 后用「自配置 TTS API」连。",
+            "enum": ["edge", "edge-local", "local", "media"],
+            "ui": {
+              "enumLabels": [
+                "云端 Edge TTS 优先（仅云端，断网时静默）",
+                "云端优先 + 本地 TTS API 兜底（默认）",
+                "只用本地/自建 TTS API（不走云端）",
+                "HanaAgent 媒体引擎专属（豆包 TTS，纯内部管线）"
+              ]
+            }
+          },
+          "density": {
+            "type": "string",
+            "default": "standard",
+            "title": "播报密度（策略档位）",
+            "description": "过程旁白报多密。由应用按“工具步数”硬控（不靠助手自己数）：紧凑=每个工具步一句（话最多）；标准=每两个工具步一句（默认）；稀疏=每四个工具步一句（话很少，过程仍有个响动）；安静=过程一句不播，只留开场和收尾。真实节奏还受“不叠声”限制（上一句在响就不排下一句）。开场与收尾各固定一句，不随档位增减",
+            "enum": ["tight", "standard", "sparse", "quiet"],
+            "ui": {
+              "enumLabels": [
+                "紧凑 · 每个工具步一句（话最多）",
+                "标准 · 每两个工具步一句（默认）",
+                "稀疏 · 每四个工具步一句（话很少，更宽的一档）",
+                "安静 · 只开场 + 收尾（过程旁白全跳过）"
+              ]
+            }
+          },
+          "style": {
+            "type": "string",
+            "default": "playful",
+            "title": "播报风格（语气 + 长短）",
+            "description": "风格同时决定说法与一次念多长（收尾）：俏皮≈140 字、平实≈80 字、温柔≈220 字、干练≈100 字",
+            "enum": ["playful", "plain", "gentle", "crisp"],
+            "ui": {
+              "enumLabels": [
+                "俏皮（默认）· 活泼概括，可自嘲，事实优先（约 140 字）",
+                "平实 · 不修饰，只报事实，词最少（约 80 字）",
+                "温柔 · 语气更软，更关心，多语气词（约 220 字）",
+                "干练 · 短句，信息密度高，不寒暄（约 100 字）"
+              ]
+            }
+          },
+          "inspectionSilent": {
+            "type": "boolean",
+            "default": true,
+            "title": "巡检/定时监控任务全程静默",
+            "description": "开（默认）：心跳巡检这类系统回合一律不播（由应用强制静默，不看助手是否记得）。关：不推荐"
+          },
+          "voice": {
+            "type": "string",
+            "default": "zh-CN-XiaoxiaoNeural",
+            "title": "音色（云端 + 本地同一音色）",
+            "description": "云端 edge-tts 用声音名；本地引擎用随包预合成的参考音克隆，同一选项两路同声",
+            "enum": [
+              "zh-CN-XiaoxiaoNeural",
+              "zh-CN-YunxiNeural",
+              "zh-CN-XiaoyiNeural",
+              "zh-CN-YunjianNeural",
+              "zh-CN-YunyangNeural",
+              "zh-CN-YunxiaNeural"
+            ],
+            "ui": {
+              "enumLabels": [
+                "晓晓 · 女（默认）",
+                "云希 · 男",
+                "晓伊 · 女（温婉）",
+                "云健 · 男（沉稳）",
+                "云扬 · 男（新闻）",
+                "云夏 · 女（活泼）"
+              ]
+            }
+          },
+          "mediaVoice": {
+            "type": "string",
+            "default": "zh_female_qiaopinv_uranus_bigtts",
+            "title": "豆包媒体引擎音色（仅豆包引擎生效）",
+            "description": "HanaAgent 内置媒体引擎（豆包 TTS）用的音色；edge-tts / 自配置 API 路径不受影响。完整 445 音色表可在 Hana 媒体目录查",
+            "enum": [
+              "zh_female_qiaopinv_uranus_bigtts",
+              "zh_female_xiaohe_uranus_bigtts",
+              "zh_female_linjianvhai_uranus_bigtts",
+              "zh_female_kefunvsheng_uranus_bigtts",
+              "zh_female_tiexinnvsheng_uranus_bigtts",
+              "zh_female_qingxinnvsheng_uranus_bigtts",
+              "zh_female_wenroushunv_uranus_bigtts",
+              "zh_female_cancan_uranus_bigtts",
+              "zh_female_liuchangnv_uranus_bigtts",
+              "zh_female_kailangjiejie_uranus_bigtts",
+              "zh_female_tianmeixiaoyuan_uranus_bigtts",
+              "zh_male_ruyayichen_uranus_bigtts",
+              "zh_male_shenyeboke_uranus_bigtts",
+              "zh_male_gaolengchenwen_uranus_bigtts",
+              "zh_male_yangguangqingnian_uranus_bigtts",
+              "zh_male_taocheng_uranus_bigtts"
+            ],
+            "ui": {
+              "enumLabels": [
+                "俏皮女声 2.0 · 女（默认）",
+                "小何 2.0 · 女（年轻）",
+                "邻家女孩 2.0 · 女（亲切）",
+                "暖阳女声 2.0 · 女（治愈）",
+                "贴心女声 2.0 · 女（体贴）",
+                "清新女声 2.0 · 女（清爽）",
+                "温柔淑女 2.0 · 女（温柔）",
+                "知性灿灿 2.0 · 女（知性）",
+                "流畅女声 2.0 · 女（播报）",
+                "开朗姐姐 2.0 · 女（活泼）",
+                "甜美小源 2.0 · 女（甜美）",
+                "儒雅逸辰 2.0 · 男（儒雅）",
+                "深夜播客 2.0 · 男（低沉温暖）",
+                "高冷沉稳 2.0 · 男（沉稳）",
+                "阳光青年 2.0 · 男（阳光）",
+                "小天 2.0 · 男（年轻）"
+              ]
+            }
+          },
+          "rate": {
+            "type": "string",
+            "default": "+15",
+            "title": "语速",
+            "description": "云端路径按此调速；本地路径以 1.15 倍速播放，两路已对齐",
+            "enum": ["+20", "+15", "+10", "0", "-10"],
+            "ui": {
+              "enumLabels": [
+                "快 +20%",
+                "标准 +15%（默认）",
+                "偏慢 +10%",
+                "常速 0%",
+                "慢 -10%"
+              ]
+            }
+          },
+          "ttsSource": {
+            "type": "string",
+            "default": "custom",
+            "title": "非 edge 链路的 TTS 来源",
+            "description": "edge 不可用（或纯本地策略）时用哪个 TTS：HanaAgent 内置媒体引擎（豆包 TTS，用 Hana 里配置的 TTS 供应商，零配置）或自配置标准 OpenAI 兼容 API（本地模型/第三方服务）",
+            "enum": ["custom", "hana"],
+            "ui": {
+              "enumLabels": [
+                "自配置 TTS API（本地模型 / 第三方服务，OpenAI 兼容）",
+                "HanaAgent 内置媒体引擎（豆包 TTS，零配置）"
+              ]
+            }
+          },
+          "apiBaseUrl": {
+            "type": "string",
+            "default": "http://127.0.0.1:8137/v1",
+            "title": "TTS API 地址（Base URL）",
+            "description": "OpenAI 兼容 TTS API 的地址；本地模型部署默认 http://127.0.0.1:8137/v1。仅在来源选「自配置 TTS API」时生效"
+          },
+          "apiModel": {
+            "type": "string",
+            "default": "",
+            "title": "TTS API 模型名（可留空）",
+            "description": "传给 API 的 model 字段；留空用服务端默认模型。仅在来源选「自配置 TTS API」时生效"
+          },
+          "apiKey": {
+            "type": "string",
+            "default": "",
+            "sensitive": true,
+            "title": "TTS API Key（可留空）",
+            "description": "以 Bearer token 发送；本地部署一般不需要，第三方服务按需填写。仅在来源选「自配置 TTS API」时生效"
+          },
+          "pythonCommand": {
+            "type": "string",
+            "default": "py",
+            "title": "Python 命令（一般不用动）",
+            "description": "Windows 选 py 启动器；Linux/macOS 选 python3",
+            "enum": ["py", "python3", "python"],
+            "ui": {
+              "enumLabels": [
+                "py · Windows 启动器（默认）",
+                "python3 · Linux/macOS",
+                "python · 通用兜底"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

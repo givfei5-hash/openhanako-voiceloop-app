@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+# 运行时产物（由应用按本机设置生成，不进包、不进版本库）
+runtime-tts.json
+speak.log
+# 自测临时目录与探针文件
+_cfgtest/
+tmp-test-data/
+_argv.log
+_argv_probe.bat
+# 参考音备份
+refs/*.bak*
