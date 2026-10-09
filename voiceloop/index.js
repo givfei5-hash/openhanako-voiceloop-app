@@ -221,12 +221,21 @@ function donePhrase(name, input) {
 }
 
 // 内部区块（PULSE/REFLECT/思考）绝不能念出来——它们不是给耳朵听的内容。
+// 内部块标签（助手/模型的心声类块）：一律不进播报。
+// 2026-10-09 真机抓到现行：只剥了 pulse/reflect/think，结果助手发 <mood>…</mood> 时
+// 应用把“<mood>”原样念了出来。现在三层：已知名单（配对+落单）→ 任何成对标签块兜底 → 内心白名单行。
+const INTERNAL_TAGS =
+  "pulse|mood|reflect|think|thinking|inner|feeling|feelings|emotion|state|analysis|reasoning|meta|scratch|draft|plan|note|notes|aside|private|self|comment|context|memory";
+const RE_INTERNAL_PAIRED = new RegExp(`<(${INTERNAL_TAGS})(?:\\s[^>]*)?>[\\s\\S]*?<\\/\\1>`, "gi");
+const RE_INTERNAL_LONE = new RegExp(`<\\/?(?:${INTERNAL_TAGS})(?:\\s[^>]*)?>`, "gi");
+// 兜底：任何“成对标签块”（未知内部标签也算），如 <whatever>…</whatever>
+const RE_ANY_PAIRED_BLOCK = /<([a-z][a-z0-9_-]{0,15})(?:\s[^>]*)?>[\s\S]*?<\/\1>/gi;
+
 function stripInternalBlocks(text) {
   return String(text || "")
-    .replace(/<pulse>[\s\S]*?<\/pulse>/gi, " ")
-    .replace(/<reflect>[\s\S]*?<\/reflect>/gi, " ")
-    .replace(/<think(?:ing)?>[\s\S]*?<\/think(?:ing)?>/gi, " ")
-    .replace(/<\/?(?:pulse|reflect|think|thinking)>/gi, " ")
+    .replace(RE_INTERNAL_PAIRED, " ")
+    .replace(RE_INTERNAL_LONE, " ")
+    .replace(RE_ANY_PAIRED_BLOCK, " ")
     .replace(/^(?:Vibe|Echo|Read|Will)[:\uFF1A][\s\S]*$/gim, " ")
     .replace(/\s+/g, " ")
     .trim();
@@ -405,9 +414,8 @@ async function modelSay(sdk, systemPrompt, userContent, sessionPath, sessionIdHi
 }
 
 function cleanLine(raw, max = 48) {
-  const cleaned = String(raw || "")
-    .trim()
-    .replace(/[\r\n]+/g, " ")
+  const cleaned = stripInternalBlocks(String(raw || ""))
+    .replace(/<\/?[a-z][a-z0-9_-]{0,20}[^>]*>/gi, " ")   // 模型万一吐标签，也不让它出声
     .replace(/^["'“‘\s]+|["'”’\s]+$/g, "")
     .replace(/^[-•*\d.、\s]+/, "")
     .trim();
@@ -461,19 +469,22 @@ function closingCap(config) {
 }
 
 async function prepareClosing(sdk, sessionPath, sessionIdHint, text, config) {
+  const clean = stripInternalBlocks(text);        // 再剥一遍（宁少念，不念内部块）
+  if (!clean) return "";                          // 全被剥光 → 一个字都不念
   const cap = closingCap(config);
-  if (text.length <= cap) return text;
+  if (clean.length <= cap) return clean;
   const systemPrompt =
     `把下面这段助手回复改写成一段适合念出来的口播稿：只留最关键的信息（结论、数字、改动点、下一步），` +
     `严格控制在 ${cap} 字以内；不要 markdown、表格、代码块、emoji；不要开场白、不要多余解释；只输出口播稿本身。`;
   const out = await modelSay(
-    sdk, systemPrompt, `原文：\n${text.slice(0, 6000)}`, sessionPath, sessionIdHint, 400,
+    sdk, systemPrompt, `原文：\n${clean.slice(0, 6000)}`, sessionPath, sessionIdHint, 400,
   );
   const line = cleanLine(out, cap + 20);
   if (line) return line;
-  // 压缩不出来（模型不可用）：宁可少念，也不自己造句子——只截取原文开头
+  // 压缩不出来（模型不可用）：宁可少念，也不自己造句子——只截取**剥完**的原文开头；剥完没东西就不念
   await sdk.logger?.info?.("voiceloop [closing] condense failed; speaking the opening of the raw text");
-  return `${text.slice(0, Math.min(cap, 180))}……`;
+  const head = cleanLine(clean.slice(0, Math.min(cap, 180)), cap + 20);
+  return head ? `${head}……` : "";
 }
 
 // ---------------------------------------------------------------- app

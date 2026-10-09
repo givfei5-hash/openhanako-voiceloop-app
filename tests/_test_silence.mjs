@@ -71,6 +71,30 @@ await sleep(4500);
 const last = spoken().slice(-1)[0] || "";
 check("正常会话：收尾念的是正文", last.includes("结论") && !last.includes("Vibe"), last.slice(0, 90));
 
+// ④ 内部块 <mood>：真机曾经把 "<mood>" 直接念出来（2026-10-09）
+await sleep(11500);
+await decisions["messages/post-assistant"]({ session: S, message: { role: "assistant", content: [{ type: "text", text: "<mood>\n我现在有点困，但还想把这件事做完。\n</mood>" }] } });
+await listeners["agent/settled"]({ session: S });
+await sleep(3000);
+const moodOnly = spoken().filter((l) => l.includes("mood") || l.includes("困"));
+check("内部块（<mood>）独白不外泄", moodOnly.length === 0, JSON.stringify(moodOnly));
+
+// ⑤ <mood> 包着的独白 + 正文 → 只念正文
+await sleep(11500);
+await decisions["messages/post-assistant"]({ session: S, message: { role: "assistant", content: [{ type: "text", text: "<mood>困</mood>结论：三件事都过了，第五条待确认。" }] } });
+await listeners["agent/settled"]({ session: S });
+await sleep(3000);
+const moodMix = spoken().slice(-1)[0] || "";
+check("<mood> + 正文：只念正文", moodMix.includes("结论") && !moodMix.includes("mood") && !moodMix.includes("困"), moodMix.slice(0, 90));
+
+// ⑥ 没见过的内部块名（兜底规则）也不能外泄
+await sleep(11500);
+await decisions["messages/post-assistant"]({ session: S, message: { role: "assistant", content: [{ type: "text", text: "<whisper>心里话</whisper>正文：三条线都验过了。" }] } });
+await listeners["agent/settled"]({ session: S });
+await sleep(3000);
+const unknownBlock = spoken().slice(-1)[0] || "";
+check("未知内部块（兜底）不外泄", unknownBlock.includes("三条线") && !unknownBlock.includes("心里话"), unknownBlock.slice(0, 90));
+
 const failed = results.filter((r) => !r).length;
 console.log("\n---- 全部日志 ----");
 logs.forEach((l) => console.log("  " + l.slice(0, 120)));
