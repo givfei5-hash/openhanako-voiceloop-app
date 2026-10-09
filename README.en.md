@@ -1,12 +1,14 @@
 # Voiceloop — give your Hana agent a mouth (Hana v2 App)
 
-**Let Hana speak.**
+**Give your assistant a voice.**
+
+(We call ours *小花*. Name yours whatever you like.)
 
 It only writes: you stare at the screen, it works in silence. Install Voiceloop and it becomes the one that talks — **a greeting when a session opens**, **a line of progress while it works**, **the conclusion read out at the end**. All three stages are driven by the **app's hooks**, and every line is **written by the session model on the spot**: no canned templates, no prompting it to speak.
 
 Add voice input and it becomes **your own Jarvis**: hold a mouse button, say the task, and listen while it works — your hands never leave the mouse (see “Closing the loop” below).
 
-**Version 2.2.2** (Hana v2 App, `manifestVersion: 2`) · License **AGPL-3.0**
+**Version 2.2.3** (Hana v2 App, `manifestVersion: 2`) · License **AGPL-3.0**
 
 Chinese docs (primary): [README.md](README.md)
 
