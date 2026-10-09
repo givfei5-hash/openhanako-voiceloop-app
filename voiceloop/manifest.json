@@ -2,9 +2,9 @@
   "manifestVersion": 2,
   "id": "voiceloop",
   "name": "Voiceloop 语音播报",
-  "version": "2.2.3",
+  "version": "2.2.4",
   "entry": "index.js",
-  "description": "让 Hana 开口说话：新会话先打招呼、干活中间报进展、收尾把结论念给你听——三段由应用钩子主动介入，句子由会话模型现写，不是模板句。基于 Hana 1.0 的 v2 应用体系（manifestVersion 2，需 Hana ≥1.0.4-beta）：钩子拿节奏、设置页拿控制权、媒体总线拿声音、权限账本拿信任。四档合成策略（云端 Edge / 云端优先+来源兜底 / 只用来源 / 媒体引擎专属），来源可选 HanaAgent 内置媒体引擎（豆包 TTS，零配置、密钥由 Hana 统一管）或任意 OpenAI 兼容 TTS API；播报风格四档、密度四档；巡检/心跳/定时任务/群聊回合一律静默，内部心声块不外泄。",
+  "description": "让小花开口说话——小花就是你的 Hana 助手（名字随你起）：新会话先打招呼、干活中间报进展、收尾把结论念给你听；三段由应用钩子主动介入、句子由会话模型现写，不是模板句。配上语音输入，它就是你自己的贾维斯。基于 Hana 1.0 的 v2 应用体系（manifestVersion 2，需 Hana ≥1.0.4-beta）：钩子拿节奏、设置页拿控制权、媒体总线拿声音、权限账本拿信任。四档合成策略（云端 Edge / 云端优先+来源兜底 / 只用来源 / 媒体引擎专属），来源可选 HanaAgent 内置媒体引擎（豆包 TTS，零配置、密钥由 Hana 统一管）或任意 OpenAI 兼容 TTS API；播报风格四档、密度四档；巡检/心跳/定时任务/群聊回合一律静默，内部心声块不外泄。",
   "capabilities": [
     "app/tools.expose-to-model",
     "app/process.spawn",

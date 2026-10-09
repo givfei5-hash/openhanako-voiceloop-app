@@ -8,7 +8,7 @@ It only writes: you stare at the screen, it works in silence. Install Voiceloop 
 
 Add voice input and it becomes **your own Jarvis**: hold a mouse button, say the task, and listen while it works — your hands never leave the mouse (see “Closing the loop” below).
 
-**Version 2.2.3** (Hana v2 App, `manifestVersion: 2`) · License **AGPL-3.0**
+**Version 2.2.4** (Hana v2 App, `manifestVersion: 2`) · License **AGPL-3.0**
 
 Chinese docs (primary): [README.md](README.md)
 

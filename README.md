@@ -8,7 +8,7 @@
 
 配上语音输入，它就是你**自己的贾维斯**：按住一个鼠标侧键把活儿说给它，它一边干一边出声汇报，你手不离鼠标（见下文「闭环输入」）。
 
-**当前版本 2.2.3**（Hana v2 应用，`manifestVersion: 2`）· 许可 **AGPL-3.0**
+**当前版本 2.2.4**（Hana v2 应用，`manifestVersion: 2`）· 许可 **AGPL-3.0**
 
 English docs: [README.en.md](README.en.md)
 
@@ -226,7 +226,7 @@ node ~/.hanako/skills/hana-app-creator/scripts/validate_app.mjs --archive ./dist
 发布三步（顺序不能反）：
 
 1. `git push` 成功
-2. 打 tag `v2.2.3`
+2. 打 tag `v2.2.4`
 3. 建**正式**（非草稿、非预发布）GitHub Release，把 **ZIP 与 `.entry.json` 同时**作为附件上传
 
 市场侧：Global 官方源读 [hana-marketplace](https://github.com/liliMozi/hana-marketplace) 的索引，仓库通过 **PR 收录**（登记 `kind/id/repository/publisher`），之后新版本靠 Release 自动发现，不用每次再提 PR。
