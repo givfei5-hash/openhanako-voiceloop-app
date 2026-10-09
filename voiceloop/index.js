@@ -242,11 +242,19 @@ function stripInternalBlocks(text) {
 }
 
 // 系统 / 活动回合（心跳巡检就跑在这类会话里）：不接手会话文件，就不该出声。
-const PATROL_MARKERS = ["巡检", "心跳", "工作台巡检", "patrol"];
+// 2026-10-09 真机补修：心跳跑在 `agents/<agent>/activity/<时间戳>.jsonl` 这种**桌面活动会话**里
+// （有会话文件、提示词里也未必带“巡检”字样），原来的三条判据全部认不出来 → 照播。
+// 现在把「活动/心跳/巡检/定时任务」的会话也当系统回合；用户会话在 sessions/ 下，不会误伤。
+const PATROL_MARKERS = ["巡检", "心跳", "工作台巡检", "patrol", "体检"];
+const SYSTEM_PATH_RE = /(?:^|[\\/])(activity|activities|desk|heartbeat|patrol|automation|automations|schedule[d]?)(?:[\\/]|$)/i;
+const SYSTEM_ID_RE = /heartbeat|patrol|desk[-_]|automation|定时/i;
 
 function isSystemTurn(invocation, prompt) {
   const path = String(invocation?.session?.sessionPath || "").trim();
-  if (!path) return true;                       // 无会话文件 = 系统活动回合
+  const id = String(invocation?.session?.sessionId || "").trim();
+  if (!path) return true;                                        // 无会话文件 = 系统活动回合
+  if (SYSTEM_PATH_RE.test(path)) return true;                    // 桌面活动 / 心跳 / 巡检 / 定时任务会话
+  if (SYSTEM_ID_RE.test(id)) return true;
   const t = String(prompt || "");
   return PATROL_MARKERS.some((m) => t.includes(m));
 }

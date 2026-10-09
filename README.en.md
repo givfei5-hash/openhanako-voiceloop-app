@@ -2,7 +2,7 @@
 
 **Opening** greets you and says what this round is about; **progress** reports milestones and what is coming next, at a cadence you choose; **closing** reads the final result aloud. All three stages are driven by the **app** (not by the agent's memory), and every line is **written by a model on the spot** — no canned templates.
 
-**Version 2.2** (Hana v2 App, `manifestVersion: 2`) · License **AGPL-3.0**
+**Version 2.2.1** (Hana v2 App, `manifestVersion: 2`) · License **AGPL-3.0**
 
 Chinese docs (primary): [README.md](README.md)
 

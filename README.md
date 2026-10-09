@@ -2,7 +2,7 @@
 
 给 Hana 的 agent 一张嘴：**开场**轻问候 + 这轮要干什么，**过程**按档位报里程碑与接下来，**收尾**把最终结论念出来。三段全部由**应用**主动介入，句子由**模型现写**（不是模板句）。
 
-**当前版本 2.2**（Hana v2 应用，`manifestVersion: 2`）· 许可 **AGPL-3.0**
+**当前版本 2.2.1**（Hana v2 应用，`manifestVersion: 2`）· 许可 **AGPL-3.0**
 
 English docs: [README.en.md](README.en.md)
 

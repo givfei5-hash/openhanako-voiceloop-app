@@ -95,6 +95,37 @@ await sleep(3000);
 const unknownBlock = spoken().slice(-1)[0] || "";
 check("未知内部块（兜底）不外泄", unknownBlock.includes("三条线") && !unknownBlock.includes("心里话"), unknownBlock.slice(0, 90));
 
+// ⑦ 真机补修：心跳跑在 activity 会话里（有会话文件、提示词可能不带“巡检”）
+const HB = {
+  sessionPath: "C:\\Users\\x\\.hanako\\agents\\hanako\\activity\\2026-10-09T11-20-00-034Z_01a12064-3321.jsonl",
+  sessionId: "01a12064-3321-7c8c-a22d-febf008a7f92",
+};
+const before = spoken().length;
+await decisions["agent/before-start"]({ session: HB, prompt: "看看这轮有什么要处理的" });
+await sleep(600);
+await decisions["tools/pre-execute"]({ session: HB, toolName: "exec_command", input: { cmd: "ping" } });
+await decisions["tools/post-execute"]({ session: HB, toolName: "exec_command" });
+await decisions["messages/post-assistant"]({ session: HB, message: { role: "assistant", content: [{ type: "text", text: "巡检完毕。本轮：150 全绿，F 套 31 小时无重启。" }] } });
+await listeners["agent/settled"]({ session: HB });
+await sleep(1500);
+check("心跳/桌面活动会话（activity 路径）：三段全静默", spoken().length === before, `新增 ${spoken().length - before} 条`);
+
+// ⑧ 定时任务类会话（heartbeat 字样）同样静默
+const HB2 = { sessionPath: "C:\\Users\\x\\.hanako\\agents\\hanako\\activity\\heartbeat-20261009.jsonl", sessionId: "hb_999" };
+const before2 = spoken().length;
+await decisions["agent/before-start"]({ session: HB2, prompt: "定时任务：备份" });
+await decisions["messages/post-assistant"]({ session: HB2, message: { role: "assistant", content: [{ type: "text", text: "备份完成。" }] } });
+await listeners["agent/settled"]({ session: HB2 });
+await sleep(1200);
+check("定时任务会话：三段全静默", spoken().length === before2, `新增 ${spoken().length - before2} 条`);
+
+// ⑨ 对照：普通用户会话（sessions 路径）仍要说
+const before3 = spoken().length;
+await decisions["messages/post-assistant"]({ session: S, message: { role: "assistant", content: [{ type: "text", text: "正文：三条线都验过了，第四条待确认。" }] } });
+await listeners["agent/settled"]({ session: S });
+await sleep(3500);
+check("普通会话不受影响（仍要出声）", spoken().length > before3, `新增 ${spoken().length - before3} 条`);
+
 const failed = results.filter((r) => !r).length;
 console.log("\n---- 全部日志 ----");
 logs.forEach((l) => console.log("  " + l.slice(0, 120)));

@@ -2,7 +2,7 @@
   "manifestVersion": 2,
   "id": "voiceloop",
   "name": "Voiceloop 语音播报",
-  "version": "2.2",
+  "version": "2.2.1",
   "entry": "index.js",
   "description": "给 Hana 一个声音：开场轻问候、过程贴状态旁白、收尾把最终输出念出来。基于 Hana 1.0 的 v2 应用体系（manifestVersion 2，需 Hana ≥1.0.4-beta）：钩子主动介入拿节奏、设置页拿控制权、媒体总线拿声音、权限账本拿信任；三段句子由会话模型现写，不是模板。四档合成策略（云端 Edge / 云端优先+来源兜底 / 只用来源 / 媒体引擎专属）；来源可选 HanaAgent 内置媒体引擎（豆包 TTS，零配置、密钥由 Hana 管）或标准 OpenAI 兼容 TTS API（Base URL + 模型 + API Key）；应用不直连本地模型，一律经 API；参考音随包预合成；风格四档、密度四档（紧凑/标准/稀疏/安静）、巡检静默、敏感内容不播。",
   "capabilities": [
