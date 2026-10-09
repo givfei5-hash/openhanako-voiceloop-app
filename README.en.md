@@ -1,6 +1,10 @@
 # Voiceloop — give your Hana agent a mouth (Hana v2 App)
 
-**Opening** greets you and says what this round is about; **progress** reports milestones and what is coming next, at a cadence you choose; **closing** reads the final result aloud. All three stages are driven by the **app** (not by the agent's memory), and every line is **written by a model on the spot** — no canned templates.
+**Let Hana speak.**
+
+It only writes: you stare at the screen, it works in silence. Install Voiceloop and it becomes the one that talks — **a greeting when a session opens**, **a line of progress while it works**, **the conclusion read out at the end**. All three stages are driven by the **app's hooks**, and every line is **written by the session model on the spot**: no canned templates, no prompting it to speak.
+
+Add voice input and it becomes **your own Jarvis**: hold a mouse button, say the task, and listen while it works — your hands never leave the mouse (see “Closing the loop” below).
 
 **Version 2.2.2** (Hana v2 App, `manifestVersion: 2`) · License **AGPL-3.0**
 
@@ -61,7 +65,9 @@ hold the mouse side button, say the task, release → text goes into the chat �
         hands never leave the mouse  ←  the app speaks  ←  opening / progress / closing
 ```
 
-**Voice in → text → agent → voice out.** Press once to hand over the job, hear it narrate progress while working, and get the conclusion read back — that is what "the agent really is a voice assistant" looks like day to day.
+**Voice in → text → agent → voice out.** Press once to hand over the job, hear it narrate progress while working, and get the conclusion read back.
+
+That is the difference between a *voice assistant* and *Jarvis*: a voice assistant answers when you ask; this one **keeps you informed while you are not looking at the screen** — walk away, come back, and the conclusion has already been read to you.
 
 Three notes:
 
