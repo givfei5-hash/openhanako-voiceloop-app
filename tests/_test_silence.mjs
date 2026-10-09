@@ -126,6 +126,29 @@ await listeners["agent/settled"]({ session: S });
 await sleep(3500);
 check("普通会话不受影响（仍要出声）", spoken().length > before3, `新增 ${spoken().length - before3} 条`);
 
+// ⑩ 群聊频道回合（助理们互发，不是用户本人）：不该报到用户耳朵里。提示词用真机原文。
+const RELAY = { sessionPath: "C:\\Users\\x\\.hanako\\agents\\zeus\\phone\\sessions\\ch_3e7b01-e34cf522\\2026-10-09T11-29-44.jsonl", sessionId: "01a1206d-relay" };
+const before4 = spoken().length;
+await decisions["agent/before-start"]({
+  session: RELAY,
+  prompt: "你的手机收到了 #ch_3e7b01 的新群聊消息。 这些是本次投递窗口内未处理的新消息，不是频道全部历史；来源是频道聊天记录 Truth，不是用户单独发给你的请求： [19:29:27] zeus: 收尾这环没主，归我🍊",
+});
+await sleep(700);
+await decisions["messages/post-assistant"]({ session: RELAY, message: { role: "assistant", content: [{ type: "text", text: "回复已发到 Truth 频道。" }] } });
+await listeners["agent/settled"]({ session: RELAY });
+await sleep(1500);
+check("群聊频道回合：开场与收尾都静默", spoken().length === before4, `新增 ${spoken().length - before4} 条`);
+
+// ⑪ 单聊转发（非用户本人）：同样静默
+const RELAY2 = { sessionPath: "C:\\Users\\x\\.hanako\\agents\\hanako\\sessions\\relay2.jsonl", sessionId: "sess_relay2" };
+const before5 = spoken().length;
+await decisions["agent/before-start"]({ session: RELAY2, prompt: "[来自 Agent「小香猪」的消息，非用户本人] 帮我给这台电脑做个体检" });
+await sleep(700);
+await decisions["messages/post-assistant"]({ session: RELAY2, message: { role: "assistant", content: [{ type: "text", text: "体检完了，三项正常。" }] } });
+await listeners["agent/settled"]({ session: RELAY2 });
+await sleep(1500);
+check("单聊转发（非用户本人）：开场与收尾都静默", spoken().length === before5, `新增 ${spoken().length - before5} 条`);
+
 const failed = results.filter((r) => !r).length;
 console.log("\n---- 全部日志 ----");
 logs.forEach((l) => console.log("  " + l.slice(0, 120)));

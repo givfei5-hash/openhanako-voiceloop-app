@@ -2,7 +2,7 @@
 
 给 Hana 的 agent 一张嘴：**开场**轻问候 + 这轮要干什么，**过程**按档位报里程碑与接下来，**收尾**把最终结论念出来。三段全部由**应用**主动介入，句子由**模型现写**（不是模板句）。
 
-**当前版本 2.2.1**（Hana v2 应用，`manifestVersion: 2`）· 许可 **AGPL-3.0**
+**当前版本 2.2.2**（Hana v2 应用，`manifestVersion: 2`）· 许可 **AGPL-3.0**
 
 English docs: [README.en.md](README.en.md)
 
@@ -218,7 +218,7 @@ node ~/.hanako/skills/hana-app-creator/scripts/validate_app.mjs --archive ./dist
 发布三步（顺序不能反）：
 
 1. `git push` 成功
-2. 打 tag `v2.2`
+2. 打 tag `v2.2.2`
 3. 建**正式**（非草稿、非预发布）GitHub Release，把 **ZIP 与 `.entry.json` 同时**作为附件上传
 
 市场侧：Global 官方源读 [hana-marketplace](https://github.com/liliMozi/hana-marketplace) 的索引，仓库通过 **PR 收录**（登记 `kind/id/repository/publisher`），之后新版本靠 Release 自动发现，不用每次再提 PR。

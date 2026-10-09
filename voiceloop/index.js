@@ -248,14 +248,27 @@ function stripInternalBlocks(text) {
 const PATROL_MARKERS = ["巡检", "心跳", "工作台巡检", "patrol", "体检"];
 const SYSTEM_PATH_RE = /(?:^|[\\/])(activity|activities|desk|heartbeat|patrol|automation|automations|schedule[d]?)(?:[\\/]|$)/i;
 const SYSTEM_ID_RE = /heartbeat|patrol|desk[-_]|automation|定时/i;
+// 助理之间转发的消息 / 群聊频道回合（不是用户本人说的）：也不该报到用户耳朵里。
+// 2026-10-09 真机：助理们在一个频道里群聊（agents/<id>/phone/sessions/ch_xxx/），
+// 应用把那些回合也念了（“回复已发到 Truth 频道”之类）——那是不该外放的内务。
+// 这类回合的提示词有现成标记（实测原文）：“你的手机收到了 #ch_xxx 的新群聊消息”、
+// “不是用户单独发给你的请求”；单聊转发则带“非用户本人”。
+const RELAY_MARKERS = [
+  "非用户本人", "[来自 Agent", "[来自Agent", "来自 Agent「",
+  "新群聊消息", "不是用户单独发给你的请求", "频道聊天记录",
+];
+const CHANNEL_PATH_RE = /(?:^|[\\/])phone[\\/]sessions[\\/]ch[-_]/i;   // 频道（群聊）会话
 
 function isSystemTurn(invocation, prompt) {
   const path = String(invocation?.session?.sessionPath || "").trim();
   const id = String(invocation?.session?.sessionId || "").trim();
   if (!path) return true;                                        // 无会话文件 = 系统活动回合
   if (SYSTEM_PATH_RE.test(path)) return true;                    // 桌面活动 / 心跳 / 巡检 / 定时任务会话
+  if (CHANNEL_PATH_RE.test(path)) return true;                   // 频道群聊会话
   if (SYSTEM_ID_RE.test(id)) return true;
-  const t = String(prompt || "");
+  // 开场拿得到本轮提示词；过程/收尾拿不到，就用开场时记下的那句
+  const t = String(prompt || "").trim() || String(userPrompts.get(sessionKey(invocation)) || "");
+  if (RELAY_MARKERS.some((m) => t.includes(m))) return true;     // 非用户本人的转发 / 群聊消息
   return PATROL_MARKERS.some((m) => t.includes(m));
 }
 
