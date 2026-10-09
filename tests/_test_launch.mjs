@@ -3,7 +3,7 @@
 //   于是可以快速、精确地数“哪些句子被放行了”。
 // 跑法：node _test_launch.mjs
 process.env.VOICELOOP_NO_RUNTIME_CONFIG = "1";
-import app from "./index.js";
+import app from "../voiceloop/index.js";
 
 const logs = [];
 const decisions = {};

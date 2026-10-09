@@ -1,7 +1,7 @@
 // Voiceloop 应用逻辑自测（不发声：API 指向一个死端口，链路会立刻失败）
 // 跑法：node _test_voiceloop.mjs
 process.env.VOICELOOP_NO_RUNTIME_CONFIG = "1";  // 自测不动真实运行时配置
-import app from "./index.js";
+import app from "../voiceloop/index.js";
 
 const logs = [];
 const decisions = {};   // event -> fn

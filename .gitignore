@@ -10,3 +10,5 @@ _argv.log
 _argv_probe.bat
 # 参考音备份
 refs/*.bak*
+
+dist/

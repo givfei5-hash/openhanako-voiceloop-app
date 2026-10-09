@@ -16,25 +16,24 @@ jobs:
 
       - name: Syntax check
         run: |
-          node --check index.js
-          node --check tools/speak.js
+          node --check voiceloop/index.js
+          node --check voiceloop/tools/speak.js
 
       - name: Launch acceptance (three stages, densities, dedupe, silence, degradation)
-        run: node _test_launch.mjs
+        run: node tests/_test_launch.mjs
 
       - name: Silence and inner-monologue filter
-        run: node _test_silence.mjs
+        run: node tests/_test_silence.mjs
 
       - name: Long-task cadence (all four densities)
         run: |
-          node _test_longtask.mjs tight
-          node _test_longtask.mjs standard
-          node _test_longtask.mjs sparse
-          node _test_longtask.mjs quiet
+          node tests/_test_longtask.mjs tight
+          node tests/_test_longtask.mjs standard
+          node tests/_test_longtask.mjs sparse
+          node tests/_test_longtask.mjs quiet
 
       - name: Style to closing length
-        run: node _test_verbosity.mjs
+        run: node tests/_test_verbosity.mjs
 
       - name: Python syntax
-        run: |
-          python3 -m py_compile speak.py scripts/tts_server.py scripts/gen_ref_lively.py scripts/generate_refs.py
+        run: python3 -m py_compile voiceloop/speak.py voiceloop/scripts/tts_server.py voiceloop/scripts/gen_ref_lively.py voiceloop/scripts/generate_refs.py

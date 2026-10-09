@@ -120,7 +120,7 @@ V1 依然可用，仓库留着：<https://github.com/givfei5-hash/openhanako-voi
 
 它会克隆仓库、把目录作为 v2 应用装上，并带上 12 项权限说明让你确认。
 
-手工装：克隆到本地 → 在 Hana 的应用管理里安装这个目录（目录里有 `manifest.json`，`manifestVersion: 2`）。
+手工装：克隆到本地 → 在 Hana 的应用管理里安装 **`voiceloop/`** 目录（目录名就是清单 `id`，里面有 `manifest.json`，`manifestVersion: 2`）。
 
 首次安装会请求 12 项能力（见下），**其中 4 项是「云端之外的合成链路」和「播报纪律」必需的**，不给就只能用云端。
 
@@ -148,18 +148,22 @@ V1 依然可用，仓库留着：<https://github.com/givfei5-hash/openhanako-voi
 
 ## 仓库里有什么
 
+按 Hana v2 应用的**官方布局**组织：应用包目录名必须等于清单 `id`，所以叫 `voiceloop/`；自测套件放仓库根 `tests/`（应用目录里不放测试文件——官方打包器不排除任何文件，会把它们打进安装包）
+
 ```
-├── README.md / README.en.md   ← 你在看（V2 说明 + 闭环输入）
-├── LICENSE                    ← AGPL-3.0 全文
-├── manifest.json              ← v2 应用清单（权限、设置页 schema）
-├── index.js                   ← 应用主体：钩子、三段编排、档位闸门、去重
-├── tools/speak.js             ← 播报工具 + 引擎编排（策略 × 来源）
-├── speak.py                   ← 原子引擎执行器（edge-tts / 自建 API / 播放）
-├── skills/voiceloop/SKILL.md  ← 给助手的纪律（三段由应用播，不要重复调）
-├── refs/                      ← 六个云端音色的 24 kHz 参考音（本地克隆用）
-├── scripts/                   ← 本地 TTS 服务 + 参考音生成器
+├── voiceloop/                 ← v2 应用包（装的就是这个目录，目录名 = 清单 id）
+│   ├── manifest.json          ← 清单：12 项能力 + 设置页 schema
+│   ├── index.js               ← 应用主体：钩子、三段编排、档位闸门、去重
+│   ├── tools/speak.js         ← 播报工具 + 引擎编排（策略 × 来源）
+│   ├── speak.py               ← 原子引擎执行器（edge-tts / 自建 API / 播放）
+│   ├── skills/voiceloop/      ← 给助手的纪律（三段由应用播，不要重复调）
+│   ├── refs/                  ← 六个云端音色的 24 kHz 参考音（本地克隆用）
+│   └── scripts/               ← 本地 TTS 服务 + 参考音生成器
+├── tests/                     ← 离线自测套件（CI 也跑）
 ├── docs/architecture.md       ← 架构、部署、踩坑与实测记录
-└── _test_*.mjs                ← 离线自测套件（CI 也跑）
+├── .github/workflows/ci.yml   ← 每次 push 跑静态检查 + 四套离线测试
+├── README.md / README.en.md   ← 你在看（V2 说明 + 闭环输入）
+└── LICENSE                    ← AGPL-3.0 全文
 ```
 
 ---
@@ -179,19 +183,45 @@ py scripts/gen_ref_lively.py zh-CN-YunxiNeural --out /path/to/tts-local/refs --o
 
 ## 自测与真机验证
 
-仓库里的自测脚本都是**离线**的（不发声、不需要网络）：
+仓库里的自测脚本都是**离线**的（不发声、不需要网络），在仓库根跑：
 
 ```bash
-node _test_launch.mjs      # 上线验收：三段自动 / 四档密度 / 去重 / 巡检静默 / 独白不外泄 / 降级
-node _test_config.mjs      # 设置项生效核查：用探针 python 抓真实命令行，逐项验
-node _test_silence.mjs     # 巡检静默 + 独白过滤
-node _test_longtask.mjs tight|standard|sparse|quiet
-node _test_verbosity.mjs   # 风格 → 收尾字数
+node tests/_test_launch.mjs      # 上线验收：三段自动 / 四档密度 / 去重 / 巡检静默 / 独白不外泄 / 降级
+node tests/_test_config.mjs      # 设置项生效核查：用探针 python 抓真实命令行，逐项验
+node tests/_test_silence.mjs     # 巡检静默 + 独白过滤
+node tests/_test_longtask.mjs tight|standard|sparse|quiet
+node tests/_test_verbosity.mjs   # 风格 → 收尾字数
 ```
 
 最近一次的结果：上线验收 **17/17**、设置项 **17/17**、静默/独白 **5/5**、长任务四档全过；密度实测 `紧凑 9 / 标准 4 / 稀疏 2 / 安静 0`。
 
 **真机验证（豆包链路，2026-10-09）**：`开场 4.9s / 16 字`、`过程 3.4s / 14 字`、`收尾 19.6s / 99 字`，全部由 `Hana 媒体引擎（豆包）` 出声；时长≈合成 + 把这句话播完。
+
+---
+
+## 发布（按 Hana v2 应用规程）
+
+包用宿主自带的官方打包器生成（它会跑与安装同一条静态校验，失败即非零退出）：
+
+```bash
+# 1) 静态校验
+node ~/.hanako/skills/hana-app-creator/scripts/validate_app.mjs --dir ./voiceloop --json
+
+# 2) 打包：确定性 zip + <kind>-<id>-<version>.entry.json
+node ~/.hanako/skills/hana-app-creator/scripts/pack_app.mjs --dir ./voiceloop \
+  --publisher "givfei5-hash" --out ./dist
+
+# 3) 校验产物
+node ~/.hanako/skills/hana-app-creator/scripts/validate_app.mjs --archive ./dist/<zip> --json
+```
+
+发布三步（顺序不能反）：
+
+1. `git push` 成功
+2. 打 tag `v2.1`
+3. 建**正式**（非草稿、非预发布）GitHub Release，把 **ZIP 与 `.entry.json` 同时**作为附件上传
+
+市场侧：Global 官方源读 [hana-marketplace](https://github.com/liliMozi/hana-marketplace) 的索引，仓库通过 **PR 收录**（登记 `kind/id/repository/publisher`），之后新版本靠 Release 自动发现，不用每次再提 PR。
 
 ---
 

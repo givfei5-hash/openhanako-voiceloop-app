@@ -10,14 +10,15 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
+const APP = path.join(HERE, "..", "voiceloop");
 const TMP = path.join(HERE, "_cfgtest");
 const LOG = path.join(TMP, "_argv.log");
 
 // ① 准备一份“带探针 speak.py”的应用副本
 fs.rmSync(TMP, { recursive: true, force: true });
 fs.mkdirSync(TMP, { recursive: true });
-for (const f of ["index.js", "manifest.json"]) fs.copyFileSync(path.join(HERE, f), path.join(TMP, f));
-for (const d of ["tools", "sdk"]) fs.cpSync(path.join(HERE, d), path.join(TMP, d), { recursive: true });
+for (const f of ["index.js", "manifest.json"]) fs.copyFileSync(path.join(APP, f), path.join(TMP, f));
+for (const d of ["tools", "sdk"]) fs.cpSync(path.join(APP, d), path.join(TMP, d), { recursive: true });
 fs.writeFileSync(
   path.join(TMP, "speak.py"),
   `import sys, json, io\r\n` +

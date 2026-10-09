@@ -1,6 +1,6 @@
 // 巡检静默 + 内部区块不外泄 自测
 process.env.VOICELOOP_NO_RUNTIME_CONFIG = "1";
-import app from "./index.js";
+import app from "../voiceloop/index.js";
 
 const logs = [];
 const decisions = {};

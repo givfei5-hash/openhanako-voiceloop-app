@@ -2,7 +2,7 @@
 // 验证「应用自己补的过程旁白」是否按档位出现，以及去重/收尾规则。
 // 跑法：node _test_longtask.mjs tight|standard|sparse|quiet
 process.env.VOICELOOP_NO_RUNTIME_CONFIG = "1";
-import app from "./index.js";
+import app from "../voiceloop/index.js";
 
 const DENSITY = process.argv[2] || "standard";
 const EXPECT = { tight: 8, standard: 4, sparse: 2, quiet: 0 }[DENSITY];
