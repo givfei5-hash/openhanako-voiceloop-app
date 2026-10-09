@@ -26,6 +26,24 @@ V1 still lives at <https://github.com/givfei5-hash/openhanako-voiceloop-skill>.
 
 ---
 
+## Why this only became possible after Hana 1.0
+
+**This is not "the V1 script wrapped in an app".** It is a dedicated landing of the **v2 App system introduced by Hana 1.0** (`manifestVersion: 2`) — each mechanism added in 1.0 is used to its full extent, which is what makes a shape V1 could never reach. Requirement: **Hana ≥ `1.0.4-beta`** (declared as `minAppVersion` in the manifest).
+
+| What Hana 1.0 added | Where this app uses it | Why V1 could not |
+|---|---|---|
+| **Hook decision authority** (`app/hooks.*`: `agent/before-start`, `tools-pre-execute`, `tools-post-execute`, `messages-post-assistant`, `hooks.observe`) | The *entire rhythm* of the three stages: opening itself on the first turn, tool-step counting for progress, intercepting the final answer for closing | A skill could only be invoked when the agent remembered to — a busy agent went silent for a whole round |
+| **Settings contribution** (`contributes.settings`, schema-driven) | Four densities, four styles, four strategies, voice, rate, silent-on-patrol — click and it applies | Only conversational commands, and the agent had to remember them |
+| **Media bus + provider catalog** (`provider:media-providers`, `resolve-media-model`, `media:generate-speech`) | Doubao TTS with **zero config**; credentials managed by Hana, the app stores no TTS secrets | No access to the host media stack — bring your own engine and keys |
+| **App-scoped media generation** (`{ scope: "app", input: {…} }`) | Hook-driven narration has no call token of a tool call to sit inside, so this new path is the only way to synthesize under the app's own authority and read the audio back | The path did not exist; non-tool contexts could not speak |
+| **Capability ledger** (auditable, revocable per item) | 12 capabilities listed at install time, revocable at any time; whichever media link is missing is reported by name | No such mechanism; the capability boundary was invisible |
+| **Tools exposed to the model** (`app/tools.expose-to-model`) | `voiceloop_speak` becomes a callable tool for the agent — and it still passes the app's cadence gate and dedupe gate (the agent cannot bypass discipline) | The agent called a script directly; whether it respected the cadence was up to its own discipline |
+| **Host model capability** (`app/models.infer`) | Opening / progress / closing lines are written by the session model on the spot — no third-party copy service | Only hardcoded templates, which sound mechanical |
+
+In one line: **V1 gave the agent a mouth and trusted its discipline; V2 uses what Hana 1.0 actually shipped** — hooks own the rhythm, the settings page owns control, the media bus owns the voice, the capability ledger owns trust. The old V1 problems (rounds going silent, mechanical templates, a 2.5 GB local engine before the first word) are only really solved here.
+
+---
+
 ## Closing the loop: voice in, voice out
 
 This is the expanded version of the "Closing the loop: voice in, voice out" section from V1. **Speaking is only half the loop** — the app is the *mouth*; you still need an *ear* and a *push-to-talk key* for a real conversation.

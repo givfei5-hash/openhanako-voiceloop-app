@@ -4,7 +4,7 @@
   "name": "Voiceloop 语音播报",
   "version": "2.1",
   "entry": "index.js",
-  "description": "给 Hana 一个声音：开场轻问候、过程贴状态旁白、收尾把最终输出念出来。四档合成策略可选（云端 Edge 优先 / 云端优先+来源兜底 / 只用来源 / HanaAgent 媒体引擎专属）；来源可选 HanaAgent 内置媒体引擎（豆包 TTS，零配置）或标准 OpenAI 兼容 TTS API（本地模型/第三方服务，支持 Base URL + 模型 + API Key）；应用不走本地模型直连，一律经 API；参考音随包预合成，换音色即换声；播报风格四档（俏皮/平实/温柔/干练）、播报密度四档（紧凑/标准/稀疏/安静）、巡检静默开关、音色与语速可选；敏感内容一律不播。",
+  "description": "给 Hana 一个声音：开场轻问候、过程贴状态旁白、收尾把最终输出念出来。基于 Hana 1.0 的 v2 应用体系（manifestVersion 2，需 Hana ≥1.0.4-beta）：钩子主动介入拿节奏、设置页拿控制权、媒体总线拿声音、权限账本拿信任；三段句子由会话模型现写，不是模板。四档合成策略（云端 Edge / 云端优先+来源兜底 / 只用来源 / 媒体引擎专属）；来源可选 HanaAgent 内置媒体引擎（豆包 TTS，零配置、密钥由 Hana 管）或标准 OpenAI 兼容 TTS API（Base URL + 模型 + API Key）；应用不直连本地模型，一律经 API；参考音随包预合成；风格四档、密度四档（紧凑/标准/稀疏/安静）、巡检静默、敏感内容不播。",
   "capabilities": [
     "app/tools.expose-to-model",
     "app/process.spawn",
@@ -37,7 +37,12 @@
             "default": "edge-local",
             "title": "语音 TTS 合成策略",
             "description": "决定每句播报走哪条合成链路：云端 Edge TTS / 非 edge 链路（HanaAgent 媒体引擎，或标准 OpenAI 兼容 TTS API）/ 纯豆包内部管线（不走微软 TTS 和自建 API，引擎不可用时直接报失败不回退）。应用不直连本地模型：本地模型请部成标准 API 后用「自配置 TTS API」连。",
-            "enum": ["edge", "edge-local", "local", "media"],
+            "enum": [
+              "edge",
+              "edge-local",
+              "local",
+              "media"
+            ],
             "ui": {
               "enumLabels": [
                 "云端 Edge TTS 优先（仅云端，断网时静默）",
@@ -52,7 +57,12 @@
             "default": "standard",
             "title": "播报密度（策略档位）",
             "description": "过程旁白报多密。由应用按“工具步数”硬控（不靠助手自己数）：紧凑=每个工具步一句（话最多）；标准=每两个工具步一句（默认）；稀疏=每四个工具步一句（话很少，过程仍有个响动）；安静=过程一句不播，只留开场和收尾。真实节奏还受“不叠声”限制（上一句在响就不排下一句）。开场与收尾各固定一句，不随档位增减",
-            "enum": ["tight", "standard", "sparse", "quiet"],
+            "enum": [
+              "tight",
+              "standard",
+              "sparse",
+              "quiet"
+            ],
             "ui": {
               "enumLabels": [
                 "紧凑 · 每个工具步一句（话最多）",
@@ -67,7 +77,12 @@
             "default": "playful",
             "title": "播报风格（语气 + 长短）",
             "description": "风格同时决定说法与一次念多长（收尾）：俏皮≈140 字、平实≈80 字、温柔≈220 字、干练≈100 字",
-            "enum": ["playful", "plain", "gentle", "crisp"],
+            "enum": [
+              "playful",
+              "plain",
+              "gentle",
+              "crisp"
+            ],
             "ui": {
               "enumLabels": [
                 "俏皮（默认）· 活泼概括，可自嘲，事实优先（约 140 字）",
@@ -156,7 +171,13 @@
             "default": "+15",
             "title": "语速",
             "description": "云端路径按此调速；本地路径以 1.15 倍速播放，两路已对齐",
-            "enum": ["+20", "+15", "+10", "0", "-10"],
+            "enum": [
+              "+20",
+              "+15",
+              "+10",
+              "0",
+              "-10"
+            ],
             "ui": {
               "enumLabels": [
                 "快 +20%",
@@ -172,7 +193,10 @@
             "default": "custom",
             "title": "非 edge 链路的 TTS 来源",
             "description": "edge 不可用（或纯本地策略）时用哪个 TTS：HanaAgent 内置媒体引擎（豆包 TTS，用 Hana 里配置的 TTS 供应商，零配置）或自配置标准 OpenAI 兼容 API（本地模型/第三方服务）",
-            "enum": ["custom", "hana"],
+            "enum": [
+              "custom",
+              "hana"
+            ],
             "ui": {
               "enumLabels": [
                 "自配置 TTS API（本地模型 / 第三方服务，OpenAI 兼容）",
@@ -204,7 +228,11 @@
             "default": "py",
             "title": "Python 命令（一般不用动）",
             "description": "Windows 选 py 启动器；Linux/macOS 选 python3",
-            "enum": ["py", "python3", "python"],
+            "enum": [
+              "py",
+              "python3",
+              "python"
+            ],
             "ui": {
               "enumLabels": [
                 "py · Windows 启动器（默认）",
